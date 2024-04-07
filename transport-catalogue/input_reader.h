@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -31,5 +32,10 @@ namespace transport {
         private:
             std::vector<CommandDescription> commands_;
         };
+        
+        void ReadTransportCatalogue(transport_catalogue::TransportCatalogue& catalogue,
+            InputReader& reader,
+            std::istream& in,
+            int base_request_count);
     }
 }

@@ -3,7 +3,6 @@
 #include <deque>
 #include <string>
 #include <string_view>
-#include <tuple>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -35,17 +34,23 @@ namespace transport {
 						);
 				}
 			};
+            
+            struct BusInfo {
+                size_t R;
+                size_t U;
+                double L;
+            };
 		}
 
 		class TransportCatalogue {
 		public:
 
 			void AddStop(std::string_view id, geo::Coordinates coordinates);
-			void AddBus(std::string_view id, std::vector<std::string_view> stops);
+			void AddBus(std::string_view id, const std::vector<std::string_view>& stops);
 
 			Stop* FindStop(std::string_view id) const;
 			Bus* FindBus(std::string_view id) const;
-			std::tuple<size_t, size_t, double> GetBusInfo(std::string_view id) const;
+			detail::BusInfo GetBusInfo(std::string_view id) const;
 
 		private:
 			std::deque<Stop> stops_;

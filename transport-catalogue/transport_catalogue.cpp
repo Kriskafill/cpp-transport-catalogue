@@ -9,7 +9,7 @@ namespace transport {
 			stopname_to_stop_.insert({ stops_.back().name, &stops_.back() });
 		}
 
-		void TransportCatalogue::AddBus(std::string_view id, std::vector<std::string_view> stops) {
+		void TransportCatalogue::AddBus(std::string_view id, const std::vector<std::string_view>& stops) {
 			std::vector<Stop*> stops_vect;
 			std::vector<Stop*> stops_vect_sort;
 			for (const auto& stop : stops) {
@@ -55,11 +55,10 @@ namespace transport {
 			}
 		}
 
-		std::tuple<size_t, size_t, double>
-			TransportCatalogue::GetBusInfo(std::string_view id) const {
+		detail::BusInfo TransportCatalogue::GetBusInfo(std::string_view id) const {
 			Bus* bus = FindBus(id);
 			if (bus == nullptr) {
-				return std::tuple(0, 0, 0.0);
+				return {0, 0, 0.0};
 			}
 
 			size_t R = bus->stops.size();
@@ -70,7 +69,7 @@ namespace transport {
 				L += geo::ComputeDistance((*it)->coordinates, (*(it - 1))->coordinates);
 			}
 
-			return std::tuple(R, U, L);
+			return {R, U, L};
 		}
 	}
 }

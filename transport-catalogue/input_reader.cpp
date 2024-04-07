@@ -101,5 +101,18 @@ namespace transport {
                 catalogue.AddBus(command.id, ParseRoute(command.description));
             }
         }
+        
+        void ReadTransportCatalogue(transport_catalogue::TransportCatalogue& catalogue,
+            InputReader& reader,
+            std::istream& in,
+            int base_request_count) {
+
+            for (int i = 0; i < base_request_count; ++i) {
+                std::string line;
+                getline(in, line);
+                reader.ParseLine(line);
+            }
+            reader.ApplyCommands(catalogue);
+        }
     }
 }
