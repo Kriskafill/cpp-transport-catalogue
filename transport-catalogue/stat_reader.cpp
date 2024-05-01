@@ -10,7 +10,7 @@ namespace transport {
 		namespace detail {
 			void BusPrintStat(std::string_view request,
 				std::ostream& output,
-				transport_catalogue::detail::BusInfo info) {
+				transport_catalogue::BusInfo info) {
 
 				output << request << ": "s;
 
@@ -20,7 +20,8 @@ namespace transport {
 				else {
 					output << info.R << " stops on route, "s
 						<< info.U << " unique stops, "s
-						<< info.L << " route length"s
+						<< info.L << " route length, "s
+						<< info.C << " curvature"s
 						<< std::endl;
 				}
 			}
@@ -71,17 +72,17 @@ namespace transport {
 				}
 			}
 		}
-        
-        void DisplayTransportCatalogue(transport_catalogue::TransportCatalogue catalogue,
-            std::istream& in,
-            std::ostream& on,
-            int stat_request_count) {
 
-            for (int i = 0; i < stat_request_count; ++i) {
-                std::string line;
-                getline(in, line);
-                ::transport::stat_reader::ParseAndPrintStat(catalogue, line, on);
-            }
-        }
+		void DisplayTransportCatalogue(transport_catalogue::TransportCatalogue catalogue,
+			std::istream& in,
+			std::ostream& on,
+			int stat_request_count) {
+
+			for (int i = 0; i < stat_request_count; ++i) {
+				std::string line;
+				getline(in, line);
+				::transport::stat_reader::ParseAndPrintStat(catalogue, line, on);
+			}
+		}
 	}
 }

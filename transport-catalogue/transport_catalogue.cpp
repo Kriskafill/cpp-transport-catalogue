@@ -9,6 +9,10 @@ namespace transport {
 			stopname_to_stop_.insert({ stops_.back().name, &stops_.back() });
 		}
 
+		void TransportCatalogue::AddDistance(std::string_view id, std::string_view stop, int distance) {
+			distances_.insert({ { FindStop(id), FindStop(stop)}, distance });
+		}
+
 		void TransportCatalogue::AddBus(std::string_view id, const std::vector<std::string_view>& stops) {
 			std::vector<Stop*> stops_vect;
 			std::vector<Stop*> stops_vect_sort;
@@ -55,21 +59,32 @@ namespace transport {
 			}
 		}
 
-		detail::BusInfo TransportCatalogue::GetBusInfo(std::string_view id) const {
+		BusInfo TransportCatalogue::GetBusInfo(std::string_view id) const {
 			Bus* bus = FindBus(id);
 			if (bus == nullptr) {
-				return {0, 0, 0.0};
+				return { 0, 0, 0.0, 0.0 };
 			}
 
 			size_t R = bus->stops.size();
 			size_t U = bus->unique;
 
 			double L = 0;
+			double L_in_line = 0;
 			for (auto it = bus->stops.begin() + 1; it != bus->stops.end(); ++it) {
-				L += geo::ComputeDistance((*it)->coordinates, (*(it - 1))->coordinates);
+
+				if (distances_.count({ *(it - 1), *(it) }) > 0) {
+					L += distances_.at({ *(it - 1), *(it) });
+				}
+				else {
+					L += distances_.at({ *(it), *(it - 1) });
+				}
+
+				L_in_line += geo::ComputeDistance((*it)->coordinates, (*(it - 1))->coordinates);
 			}
 
-			return {R, U, L};
+			double C = L / L_in_line;
+
+			return { R, U, L, C };
 		}
 	}
 }

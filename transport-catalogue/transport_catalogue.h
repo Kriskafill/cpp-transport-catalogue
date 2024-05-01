@@ -23,6 +23,13 @@ namespace transport {
 			size_t unique;
 		};
 
+		struct BusInfo {
+			size_t R;
+			size_t U;
+			double L;
+			double C;
+		};
+
 		namespace detail {
 			struct Hasher {
 				size_t operator() (const std::pair<Stop*, Stop*>& d) const {
@@ -34,29 +41,25 @@ namespace transport {
 						);
 				}
 			};
-            
-            struct BusInfo {
-                size_t R;
-                size_t U;
-                double L;
-            };
 		}
 
 		class TransportCatalogue {
 		public:
 
 			void AddStop(std::string_view id, geo::Coordinates coordinates);
+			void AddDistance(std::string_view id, std::string_view stop, int distance);
 			void AddBus(std::string_view id, const std::vector<std::string_view>& stops);
 
 			Stop* FindStop(std::string_view id) const;
 			Bus* FindBus(std::string_view id) const;
-			detail::BusInfo GetBusInfo(std::string_view id) const;
+			BusInfo GetBusInfo(std::string_view id) const;
 
 		private:
 			std::deque<Stop> stops_;
 			std::unordered_map<std::string_view, Stop*> stopname_to_stop_;
 			std::deque<Bus> buses_;
 			std::unordered_map<std::string_view, Bus*> busname_to_bus_;
+			std::unordered_map<std::pair<Stop*, Stop*>, int, detail::Hasher> distances_;
 		};
 	}
 }

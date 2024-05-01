@@ -1,9 +1,5 @@
 #include "input_reader.h"
 
-#include <algorithm> // TODO
-#include <cassert> // TODO
-#include <iterator> // TODO
-
 namespace transport {
     namespace input_reader {
         geo::Coordinates ParseCoordinates(std::string_view str) {
@@ -22,6 +18,36 @@ namespace transport {
             double lng = std::stod(std::string(str.substr(not_space2)));
 
             return { lat, lng };
+        }
+
+        void ParseOneDistance(std::string_view id, std::string_view str, std::vector<Distance>& distances) {
+
+            auto not_digit = str.find_first_of('m');
+
+            auto to = str.find("to ");
+            to += 2;
+            auto start_word = str.find_first_not_of(' ', to);
+            auto end_word = str.find_last_not_of(' ');
+
+            distances.push_back({
+                std::string(id),
+                std::string(str.substr(start_word, end_word + 1)),
+                std::stoi(std::string(str.substr(0, not_digit)))
+                });
+        }
+
+        void ParseDistances(std::string_view id, std::string_view str, std::vector<Distance>& distances) {
+
+            auto begin = str.find_first_not_of(' ');
+            auto end = str.find(',');
+
+            while (end != str.npos) {
+                ParseOneDistance(id, str.substr(begin, end - begin), distances);
+                begin = str.find_first_not_of(' ', end + 1);
+                end = str.find(',', end + 1);
+            }
+
+            ParseOneDistance(id, str.substr(begin, end), distances);
         }
 
         std::string_view Trim(std::string_view string) {
@@ -91,9 +117,26 @@ namespace transport {
         }
 
         void InputReader::ApplyCommands([[maybe_unused]] transport_catalogue::TransportCatalogue& catalogue) const {
+
+            std::vector<Distance> distances;
             for (const auto& command : commands_) {
                 if (!command || command.command != "Stop") continue;
-                catalogue.AddStop(command.id, ParseCoordinates(command.description));
+
+                auto comma = command.description.find(',');
+                if (comma == command.description.npos) return;
+                auto comma2 = command.description.find(',', comma + 1);
+
+                if (comma2 == command.description.npos) {
+                    catalogue.AddStop(command.id, ParseCoordinates(command.description));
+                }
+                else {
+                    catalogue.AddStop(command.id, ParseCoordinates(command.description.substr(0, comma2)));
+                    ParseDistances(command.id, command.description.substr(comma2 + 1), distances);
+                }
+            }
+
+            for (const auto& distance : distances) {
+                catalogue.AddDistance(distance.start_stop, distance.end_stop, distance.distance);
             }
 
             for (const auto& command : commands_) {
@@ -101,7 +144,7 @@ namespace transport {
                 catalogue.AddBus(command.id, ParseRoute(command.description));
             }
         }
-        
+
         void ReadTransportCatalogue(transport_catalogue::TransportCatalogue& catalogue,
             InputReader& reader,
             std::istream& in,

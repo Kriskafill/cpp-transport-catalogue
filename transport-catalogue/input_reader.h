@@ -23,6 +23,12 @@ namespace transport {
             std::string description;
         };
 
+        struct Distance {
+            std::string start_stop;
+            std::string end_stop;
+            int distance;
+        };
+
         class InputReader {
         public:
 
@@ -32,7 +38,7 @@ namespace transport {
         private:
             std::vector<CommandDescription> commands_;
         };
-        
+
         void ReadTransportCatalogue(transport_catalogue::TransportCatalogue& catalogue,
             InputReader& reader,
             std::istream& in,
