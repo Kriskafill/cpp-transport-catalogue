@@ -24,10 +24,10 @@ namespace transport {
 		};
 
 		struct BusInfo {
-			size_t R;
-			size_t U;
-			double L;
-			double C;
+			size_t stops_on_route;
+			size_t unique_stops;
+			double route_length; 
+			double curvature;
 		};
 
 		namespace detail {
@@ -53,6 +53,7 @@ namespace transport {
 			Stop* FindStop(std::string_view id) const;
 			Bus* FindBus(std::string_view id) const;
 			BusInfo GetBusInfo(std::string_view id) const;
+			std::unordered_map<std::pair<Stop*, Stop*>, int, detail::Hasher>& GetDistance();
 
 		private:
 			std::deque<Stop> stops_;

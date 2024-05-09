@@ -41,7 +41,6 @@ namespace transport {
 
         void ReadTransportCatalogue(transport_catalogue::TransportCatalogue& catalogue,
             InputReader& reader,
-            std::istream& in,
-            int base_request_count);
+            std::istream& in);
     }
 }

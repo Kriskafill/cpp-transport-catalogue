@@ -65,26 +65,30 @@ namespace transport {
 				return { 0, 0, 0.0, 0.0 };
 			}
 
-			size_t R = bus->stops.size();
-			size_t U = bus->unique;
+			size_t stops_on_route = bus->stops.size();
+			size_t unique_stops = bus->unique;
 
-			double L = 0;
-			double L_in_line = 0;
+			double route_length = 0;
+			double route_length_in_line = 0;
 			for (auto it = bus->stops.begin() + 1; it != bus->stops.end(); ++it) {
 
 				if (distances_.count({ *(it - 1), *(it) }) > 0) {
-					L += distances_.at({ *(it - 1), *(it) });
+					route_length += distances_.at({ *(it - 1), *(it) });
 				}
 				else {
-					L += distances_.at({ *(it), *(it - 1) });
+					route_length += distances_.at({ *(it), *(it - 1) });
 				}
 
-				L_in_line += geo::ComputeDistance((*it)->coordinates, (*(it - 1))->coordinates);
+				route_length_in_line += geo::ComputeDistance((*it)->coordinates, (*(it - 1))->coordinates);
 			}
 
-			double C = L / L_in_line;
+			double curvature = route_length / route_length_in_line;
 
-			return { R, U, L, C };
+			return { stops_on_route, unique_stops, route_length, curvature };
+		}
+
+		std::unordered_map<std::pair<Stop*, Stop*>, int, detail::Hasher>& TransportCatalogue::GetDistance() {
+			return distances_;
 		}
 	}
 }

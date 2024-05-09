@@ -14,14 +14,14 @@ namespace transport {
 
 				output << request << ": "s;
 
-				if (info.R == 0) {
+				if (info.stops_on_route == 0) {
 					output << "not found"s << std::endl;
 				}
 				else {
-					output << info.R << " stops on route, "s
-						<< info.U << " unique stops, "s
-						<< info.L << " route length, "s
-						<< info.C << " curvature"s
+					output << info.stops_on_route << " stops on route, "s
+						<< info.unique_stops << " unique stops, "s
+						<< info.route_length << " route length, "s
+						<< info.curvature << " curvature"s
 						<< std::endl;
 				}
 			}
@@ -75,8 +75,10 @@ namespace transport {
 
 		void DisplayTransportCatalogue(transport_catalogue::TransportCatalogue catalogue,
 			std::istream& in,
-			std::ostream& on,
-			int stat_request_count) {
+			std::ostream& on) {
+
+			int stat_request_count;
+			std::cin >> stat_request_count >> std::ws;
 
 			for (int i = 0; i < stat_request_count; ++i) {
 				std::string line;

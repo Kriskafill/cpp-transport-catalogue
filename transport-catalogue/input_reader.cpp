@@ -20,7 +20,7 @@ namespace transport {
             return { lat, lng };
         }
 
-        void ParseOneDistance(std::string_view id, std::string_view str, std::vector<Distance>& distances) {
+        void ParseOneDistance(std::string_view id, std::string_view&& str, std::vector<Distance>& distances) {
 
             auto not_digit = str.find_first_of('m');
 
@@ -36,18 +36,18 @@ namespace transport {
                 });
         }
 
-        void ParseDistances(std::string_view id, std::string_view str, std::vector<Distance>& distances) {
+        void ParseDistances(std::string_view id, std::string_view&& str, std::vector<Distance>& distances) {
 
             auto begin = str.find_first_not_of(' ');
             auto end = str.find(',');
 
             while (end != str.npos) {
-                ParseOneDistance(id, str.substr(begin, end - begin), distances);
+                ParseOneDistance(id, std::move(str.substr(begin, end - begin)), distances);
                 begin = str.find_first_not_of(' ', end + 1);
                 end = str.find(',', end + 1);
             }
 
-            ParseOneDistance(id, str.substr(begin, end), distances);
+            ParseOneDistance(id, std::move(str.substr(begin, end)), distances);
         }
 
         std::string_view Trim(std::string_view string) {
@@ -131,7 +131,7 @@ namespace transport {
                 }
                 else {
                     catalogue.AddStop(command.id, ParseCoordinates(command.description.substr(0, comma2)));
-                    ParseDistances(command.id, command.description.substr(comma2 + 1), distances);
+                    ParseDistances(command.id, std::move(command.description.substr(comma2 + 1)), distances);
                 }
             }
 
@@ -147,8 +147,10 @@ namespace transport {
 
         void ReadTransportCatalogue(transport_catalogue::TransportCatalogue& catalogue,
             InputReader& reader,
-            std::istream& in,
-            int base_request_count) {
+            std::istream& in) {
+
+            int base_request_count;
+            std::cin >> base_request_count >> std::ws;
 
             for (int i = 0; i < base_request_count; ++i) {
                 std::string line;

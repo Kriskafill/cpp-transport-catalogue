@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <iostream>
 #include <optional>
 #include <string_view>
 
@@ -24,7 +25,6 @@ namespace transport {
 
 		void DisplayTransportCatalogue(transport_catalogue::TransportCatalogue catalogue,
 			std::istream& in,
-			std::ostream& on,
-			int stat_request_count);
+			std::ostream& on);
 	}
 }
