@@ -87,8 +87,8 @@ namespace transport {
 			return { stops_on_route, unique_stops, route_length, curvature };
 		}
 
-		std::unordered_map<std::pair<Stop*, Stop*>, int, detail::Hasher>& TransportCatalogue::GetDistance() {
-			return distances_;
+		int TransportCatalogue::GetDistance(std::pair<Stop*, Stop*> stops) const {
+			return distances_.at(stops);
 		}
 	}
 }

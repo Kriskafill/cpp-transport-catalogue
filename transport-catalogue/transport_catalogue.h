@@ -53,7 +53,7 @@ namespace transport {
 			Stop* FindStop(std::string_view id) const;
 			Bus* FindBus(std::string_view id) const;
 			BusInfo GetBusInfo(std::string_view id) const;
-			std::unordered_map<std::pair<Stop*, Stop*>, int, detail::Hasher>& GetDistance();
+			int GetDistance(std::pair<Stop*, Stop*> stops) const;
 
 		private:
 			std::deque<Stop> stops_;
