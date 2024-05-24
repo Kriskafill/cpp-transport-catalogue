@@ -3,6 +3,7 @@
 #include "geo.h"
 #include "svg.h"
 #include "transport_catalogue.h"
+#include "domain.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -16,27 +17,6 @@ namespace transport {
         inline const double EPSILON = 1e-6;
 
         bool IsZero(double value);
-
-        struct InfoXML {
-
-            double width;
-            double height;
-
-            double padding;
-            double line_width;
-            double stop_radius;
-
-            int bus_label_font_size;
-            svg::Point bus_label_offset;
-
-            int stop_label_font_size;
-            svg::Point stop_label_offset;
-
-            svg::Color underlayer_color;
-            double underlayer_width;
-
-            std::vector<svg::Color> color_palette;
-        };
 
         class SphereProjector {
         public:
@@ -98,11 +78,14 @@ namespace transport {
             double zoom_coeff_ = 0;
         };
 
-        class ReaderXML {
+        class MapRenderer {
         public:
 
-            explicit ReaderXML(transport_catalogue::TransportCatalogue& catalogue, InfoXML xml);
+            explicit MapRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml);
             void Output(std::ostream& out);
+
+            void BusRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector);
+            void StopRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector);
 
         private:
             svg::Document doc_;

@@ -7,20 +7,7 @@ namespace transport {
             return std::abs(value) < EPSILON;
         }
 
-        ReaderXML::ReaderXML(transport_catalogue::TransportCatalogue& catalogue, InfoXML xml) {
-
-            std::vector<geo::Coordinates> vect;
-
-            for (auto it = catalogue.StopsBeginIt(); it != catalogue.StopsEndIt(); ++it) {
-                if (it->buses_for_stop.size() > 0) {
-                    vect.push_back(it->coordinates);
-                }
-            }
-
-            map_renderer::SphereProjector sphere_projector(
-                vect.begin(), vect.end(),
-                xml.width, xml.height, xml.padding
-            );
+        void MapRenderer::BusRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector) {
 
             int index_color = 0;
             int color_count = xml.color_palette.size();
@@ -125,6 +112,9 @@ namespace transport {
                     }
                 }
             }
+        }
+
+        void MapRenderer::StopRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector) {
 
             std::deque<std::string_view> stops;
             for (auto it = catalogue.StopsBeginIt(); it != catalogue.StopsEndIt(); ++it) {
@@ -175,7 +165,26 @@ namespace transport {
             }
         }
 
-        void ReaderXML::Output(std::ostream& out) {
+        MapRenderer::MapRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml) {
+
+            std::vector<geo::Coordinates> vect;
+
+            for (auto it = catalogue.StopsBeginIt(); it != catalogue.StopsEndIt(); ++it) {
+                if (it->buses_for_stop.size() > 0) {
+                    vect.push_back(it->coordinates);
+                }
+            }
+
+            map_renderer::SphereProjector sphere_projector(
+                vect.begin(), vect.end(),
+                xml.width, xml.height, xml.padding
+            );
+            
+            BusRenderer(catalogue, xml, sphere_projector);
+            StopRenderer(catalogue, xml, sphere_projector);
+        }
+
+        void MapRenderer::Output(std::ostream& out) {
             doc_.Render(out);
         }
 

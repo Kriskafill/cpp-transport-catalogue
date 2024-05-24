@@ -14,8 +14,8 @@ namespace transport {
 		}
 
 		void TransportCatalogue::AddBus(std::string_view id, const std::vector<std::string_view>& stops, bool is_round) {
-			std::vector<Stop*> stops_vect;
-			std::vector<Stop*> stops_vect_sort;
+			std::vector<domain::Stop*> stops_vect;
+			std::vector<domain::Stop*> stops_vect_sort;
 			for (const auto& stop : stops) {
 				stops_vect.push_back(FindStop(stop));
 				stops_vect_sort.push_back(FindStop(stop));
@@ -41,7 +41,7 @@ namespace transport {
 			busname_to_bus_.insert({ buses_.back().name, &buses_.back() });
 		}
 
-		Stop* TransportCatalogue::FindStop(std::string_view id) const {
+		domain::Stop* TransportCatalogue::FindStop(std::string_view id) const {
 			if (stopname_to_stop_.count(id) == 0) {
 				return nullptr;
 			}
@@ -50,7 +50,7 @@ namespace transport {
 			}
 		}
 
-		Bus* TransportCatalogue::FindBus(std::string_view id) const {
+		domain::Bus* TransportCatalogue::FindBus(std::string_view id) const {
 			if (busname_to_bus_.count(id) == 0) {
 				return nullptr;
 			}
@@ -59,8 +59,8 @@ namespace transport {
 			}
 		}
 
-		BusInfo TransportCatalogue::GetBusInfo(std::string_view id) const {
-			Bus* bus = FindBus(id);
+		domain::BusInfo TransportCatalogue::GetBusInfo(std::string_view id) const {
+			domain::Bus* bus = FindBus(id);
 			if (bus == nullptr) {
 				return { 0, 0, 0.0, 0.0 };
 			}
@@ -87,8 +87,8 @@ namespace transport {
 			return { stops_on_route, unique_stops, route_length, curvature };
 		}
 
-		int TransportCatalogue::GetDistance(Stop* stop1, Stop* stop2) const {
-			return distances_.at(std::pair<Stop*, Stop*>(stop1, stop2));
+		int TransportCatalogue::GetDistance(domain::Stop* stop1, domain::Stop* stop2) const {
+			return distances_.at(std::pair<domain::Stop*, domain::Stop*>(stop1, stop2));
 		}
 	}
 }

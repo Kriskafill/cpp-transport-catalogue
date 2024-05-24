@@ -5,14 +5,7 @@
 namespace transport {
 	namespace json_reader {
 
-        Reader::Reader(
-            transport_catalogue::TransportCatalogue& catalogue,
-            std::istream& in
-        )
-            : catalogue_(catalogue), doc_(json::Load(in)) {
-
-            using namespace json;
-
+        void Reader::StopReader(transport_catalogue::TransportCatalogue& catalogue) {
             std::vector<Distance> distances;
 
             for (const auto& info : doc_.GetRoot().AsMap().at("base_requests").AsArray()) {
@@ -32,7 +25,7 @@ namespace transport {
                                 info.AsMap().at("name").AsString(),
                                 distance.first,
                                 distance.second.AsInt()
-                            });
+                                });
                         }
                     }
                 }
@@ -41,7 +34,9 @@ namespace transport {
             for (const auto& distance : distances) {
                 catalogue.AddDistance(distance.start_stop, distance.end_stop, distance.distance);
             }
+        }
 
+        void Reader::BusReader(transport_catalogue::TransportCatalogue& catalogue) {
             for (const auto& info : doc_.GetRoot().AsMap().at("base_requests").AsArray()) {
                 if (info.AsMap().at("type").AsString() == "Bus") {
                     std::vector<std::string_view> stops;
@@ -64,6 +59,18 @@ namespace transport {
                     );
                 }
             }
+        }
+
+        Reader::Reader(
+            transport_catalogue::TransportCatalogue& catalogue,
+            std::istream& in
+        )
+            : catalogue_(catalogue), doc_(json::Load(in)) {
+
+            using namespace json;
+
+            StopReader(catalogue);
+            BusReader(catalogue);
         }
 
 		void Reader::Output(std::ostream& out) {
@@ -126,7 +133,7 @@ namespace transport {
                 if (info.AsMap().at("type").AsString() == "Map") {
 
                     std::ostringstream os;
-                    transport::map_renderer::ReaderXML reader_xml(catalogue_, GetInfoXML());
+                    transport::map_renderer::MapRenderer reader_xml(catalogue_, GetInfoXML());
                     reader_xml.Output(os);
 
                     Dict dict = {
@@ -176,7 +183,7 @@ namespace transport {
             return colors;
         }
 
-        map_renderer::InfoXML Reader::GetInfoXML() {
+        domain::RenderSettings Reader::GetInfoXML() {
             auto& info = doc_.GetRoot().AsMap().at("render_settings").AsMap();
 
             std::vector<json::Node> bus_label_offset = info.at("bus_label_offset").AsArray();

@@ -29,7 +29,10 @@ namespace transport {
 			);
 
 			void Output(std::ostream& out);
-			map_renderer::InfoXML GetInfoXML();
+			domain::RenderSettings GetInfoXML();
+
+			void StopReader(transport_catalogue::TransportCatalogue& catalogue);
+			void BusReader(transport_catalogue::TransportCatalogue& catalogue);
 
 		private:
 			transport_catalogue::TransportCatalogue& catalogue_;
