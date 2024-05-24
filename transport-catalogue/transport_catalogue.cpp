@@ -13,7 +13,7 @@ namespace transport {
 			distances_.insert({ { FindStop(id), FindStop(stop)}, distance });
 		}
 
-		void TransportCatalogue::AddBus(std::string_view id, const std::vector<std::string_view>& stops) {
+		void TransportCatalogue::AddBus(std::string_view id, const std::vector<std::string_view>& stops, bool is_round) {
 			std::vector<Stop*> stops_vect;
 			std::vector<Stop*> stops_vect_sort;
 			for (const auto& stop : stops) {
@@ -29,7 +29,7 @@ namespace transport {
 				}
 			}
 
-			buses_.push_back({ std::move(std::string(id)), std::move(stops_vect), unique });
+			buses_.push_back({ std::move(std::string(id)), std::move(stops_vect), unique, is_round });
 
 			(*stops_vect_sort.begin())->buses_for_stop.push_back(buses_.back().name);
 			for (auto it = stops_vect_sort.begin() + 1; it != stops_vect_sort.end(); ++it) {
@@ -87,8 +87,8 @@ namespace transport {
 			return { stops_on_route, unique_stops, route_length, curvature };
 		}
 
-		int TransportCatalogue::GetDistance(std::pair<Stop*, Stop*> stops) const {
-			return distances_.at(stops);
+		int TransportCatalogue::GetDistance(Stop* stop1, Stop* stop2) const {
+			return distances_.at(std::pair<Stop*, Stop*>(stop1, stop2));
 		}
 	}
 }

@@ -1,19 +1,15 @@
-﻿#include <string>
+﻿#include <iostream>
 
-#include "input_reader.h"
-#include "stat_reader.h"
+#include "json_reader.h"
+#include "map_renderer.h"
 
-using namespace std;
-
-// Sprint 9: Review Version #3
+// Sprint 10: Review Version #1
 
 int main() {
     transport::transport_catalogue::TransportCatalogue catalogue;
+    transport::json_reader::Reader reader(catalogue, std::cin);
+    //transport::map_renderer::ReaderXML reader_xml(catalogue, reader.GetInfoXML());
 
-    {
-        transport::input_reader::InputReader reader;
-        transport::input_reader::ReadTransportCatalogue(catalogue, reader, cin);
-    }
-
-    transport::stat_reader::DisplayTransportCatalogue(catalogue, cin, cout);
+    reader.Output(std::cout);
+    //reader_xml.Output(std::cout);
 }
