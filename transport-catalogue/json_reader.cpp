@@ -142,11 +142,7 @@ namespace transport {
             nodes.push_back(std::move(dict));
         }
 
-<<<<<<< HEAD
         void Reader::Output(std::ostream& out) {
-=======
-	void Reader::Output(std::ostream& out) {
->>>>>>> 22e6cb134a76a736cac2dbca0b498bdf2251940b
             using namespace json;
 
             std::vector<Node> nodes;
@@ -167,11 +163,7 @@ namespace transport {
 
             Document doc(nodes);
             Print(doc, out);
-<<<<<<< HEAD
         }
-=======
-	}
->>>>>>> 22e6cb134a76a736cac2dbca0b498bdf2251940b
 
         svg::Color GetColor(json::Node& node) {
             svg::Color color;
@@ -240,8 +232,4 @@ namespace transport {
             };
         }
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 22e6cb134a76a736cac2dbca0b498bdf2251940b
