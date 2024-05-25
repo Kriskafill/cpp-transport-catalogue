@@ -7,17 +7,24 @@ namespace transport {
             return std::abs(value) < EPSILON;
         }
 
-        void MapRenderer::BusRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector) {
+        void SetStopParametres(
+            svg::Text& text,
+            map_renderer::SphereProjector& sphere_projector,
+            transport_catalogue::TransportCatalogue& catalogue,
+            const domain::RenderSettings& xml,
+            std::deque<std::string_view>::iterator it
+        ) {
+            text.SetPosition(sphere_projector(catalogue.FindBus(*it)->stops.at(0)->coordinates));
+            text.SetOffset(xml.bus_label_offset);
+            text.SetFontSize(xml.bus_label_font_size);
+            text.SetFontFamily("Verdana");
+            text.SetFontWeight("bold");
+            text.SetData(std::string(*it));
+        }
 
+        void MapRenderer::BusPolylineRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector, std::deque<std::string_view>& buses) {
             int index_color = 0;
             int color_count = xml.color_palette.size();
-
-            std::deque<std::string_view> buses;
-            for (auto it = catalogue.BusesBeginIt(); it != catalogue.BusesEndIt(); ++it) {
-                buses.push_back(it->name);
-            }
-
-            std::sort(buses.begin(), buses.end());
 
             for (auto it = buses.begin(); it != buses.end(); ++it) {
 
@@ -40,18 +47,16 @@ namespace transport {
                     doc_.Add(polyline);
                 }
             }
+        }
 
-            index_color = 0;
-
+        void MapRenderer::BusTextRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector, std::deque<std::string_view>& buses) {
+            int index_color = 0;
+            int color_count = xml.color_palette.size();
+            
             for (auto it = buses.begin(); it != buses.end(); ++it) {
 
                 svg::Text text_underlayer;
-                text_underlayer.SetPosition(sphere_projector(catalogue.FindBus(*it)->stops.at(0)->coordinates));
-                text_underlayer.SetOffset(xml.bus_label_offset);
-                text_underlayer.SetFontSize(xml.bus_label_font_size);
-                text_underlayer.SetFontFamily("Verdana");
-                text_underlayer.SetFontWeight("bold");
-                text_underlayer.SetData(std::string(*it));
+                SetStopParametres(text_underlayer, sphere_projector, catalogue, xml, it);
                 text_underlayer.SetFillColor(xml.underlayer_color);
                 text_underlayer.SetStrokeColor(xml.underlayer_color);
                 text_underlayer.SetStrokeWidth(xml.underlayer_width);
@@ -59,12 +64,7 @@ namespace transport {
                 text_underlayer.SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
 
                 svg::Text text;
-                text.SetPosition(sphere_projector(catalogue.FindBus(*it)->stops.at(0)->coordinates));
-                text.SetOffset(xml.bus_label_offset);
-                text.SetFontSize(xml.bus_label_font_size);
-                text.SetFontFamily("Verdana");
-                text.SetFontWeight("bold");
-                text.SetData(std::string(*it));
+                SetStopParametres(text_underlayer, sphere_projector, catalogue, xml, it);
                 text.SetFillColor(xml.color_palette.at(index_color));
 
                 svg::Text text_underlayer_line;
@@ -75,24 +75,14 @@ namespace transport {
                     size > 1 &&
                     catalogue.FindBus(*it)->stops.at(0)->name != catalogue.FindBus(*it)->stops.at(size / 2)->name) {
 
-                    text_underlayer_line.SetPosition(sphere_projector(catalogue.FindBus(*it)->stops.at(size / 2)->coordinates));
-                    text_underlayer_line.SetOffset(xml.bus_label_offset);
-                    text_underlayer_line.SetFontSize(xml.bus_label_font_size);
-                    text_underlayer_line.SetFontFamily("Verdana");
-                    text_underlayer_line.SetFontWeight("bold");
-                    text_underlayer_line.SetData(std::string(*it));
+                    SetStopParametres(text_underlayer, sphere_projector, catalogue, xml, it);
                     text_underlayer_line.SetFillColor(xml.underlayer_color);
                     text_underlayer_line.SetStrokeColor(xml.underlayer_color);
                     text_underlayer_line.SetStrokeWidth(xml.underlayer_width);
                     text_underlayer_line.SetStrokeLineCap(svg::StrokeLineCap::ROUND);
                     text_underlayer_line.SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
 
-                    text_line.SetPosition(sphere_projector(catalogue.FindBus(*it)->stops.at(size / 2)->coordinates));
-                    text_line.SetOffset(xml.bus_label_offset);
-                    text_line.SetFontSize(xml.bus_label_font_size);
-                    text_line.SetFontFamily("Verdana");
-                    text_line.SetFontWeight("bold");
-                    text_line.SetData(std::string(*it));
+                    SetStopParametres(text_underlayer, sphere_projector, catalogue, xml, it);
                     text_line.SetFillColor(xml.color_palette.at(index_color));
                 }
 
@@ -112,6 +102,19 @@ namespace transport {
                     }
                 }
             }
+        }
+
+        void MapRenderer::BusRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector) {
+
+            std::deque<std::string_view> buses;
+            for (auto it = catalogue.BusesBeginIt(); it != catalogue.BusesEndIt(); ++it) {
+                buses.push_back(it->name);
+            }
+
+            std::sort(buses.begin(), buses.end());
+
+            BusPolylineRenderer(catalogue, xml, sphere_projector, buses);
+            BusTextRenderer(catalogue, xml, sphere_projector, buses);
         }
 
         void MapRenderer::StopRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector) {
@@ -187,6 +190,5 @@ namespace transport {
         void MapRenderer::Output(std::ostream& out) {
             doc_.Render(out);
         }
-
     }
 }

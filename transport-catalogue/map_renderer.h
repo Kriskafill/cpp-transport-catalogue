@@ -87,6 +87,9 @@ namespace transport {
             void BusRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector);
             void StopRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector);
 
+            void BusPolylineRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector, std::deque<std::string_view>& buses);
+            void BusTextRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector, std::deque<std::string_view>& buses);
+
         private:
             svg::Document doc_;
         };

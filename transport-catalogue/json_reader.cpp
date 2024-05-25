@@ -73,6 +73,75 @@ namespace transport {
             BusReader(catalogue);
         }
 
+        void Reader::StopOutput(std::ostream& out, const json::Node& info, std::vector<json::Node>& nodes) {
+            using namespace json;
+
+            auto stop_info = catalogue_.FindStop(info.AsMap().at("name").AsString());
+            if (!stop_info) {
+                Dict dict = {
+                    {"error_message", std::string("not found")},
+                    {"request_id", info.AsMap().at("id")}
+                };
+                nodes.push_back(std::move(dict));
+            }
+            else {
+                auto buses_info = stop_info->buses_for_stop;
+                std::sort(buses_info.begin(), buses_info.end());
+
+                std::vector<Node> node_buses;
+                for (const auto& bus : buses_info) {
+                    node_buses.push_back(std::string(bus));
+                }
+
+                Dict dict = {
+                    {"buses", node_buses},
+                    {"request_id", info.AsMap().at("id")}
+                };
+
+                nodes.push_back(std::move(dict));
+            }
+        }
+
+        void Reader::BusOutput(std::ostream& out, const json::Node& info, std::vector<json::Node>& nodes) {
+            using namespace json;
+
+            auto bus_info = catalogue_.GetBusInfo(info.AsMap().at("name").AsString());
+
+            if (bus_info.stops_on_route == 0) {
+                Dict dict = {
+                    {"error_message", std::string("not found")},
+                    {"request_id", info.AsMap().at("id")}
+                };
+
+                nodes.push_back(std::move(dict));
+            }
+            else {
+                Dict dict = {
+                    {"curvature", bus_info.curvature},
+                    {"request_id", info.AsMap().at("id")},
+                    {"route_length", bus_info.route_length},
+                    {"stop_count", static_cast<int>(bus_info.stops_on_route)},
+                    {"unique_stop_count", static_cast<int>(bus_info.unique_stops)}
+                };
+
+                nodes.push_back(std::move(dict));
+            }
+        }
+
+        void Reader::MapOutput(std::ostream& out, const json::Node& info, std::vector<json::Node>& nodes) {
+            using namespace json;
+
+            std::ostringstream os;
+            transport::map_renderer::MapRenderer reader_xml(catalogue_, GetInfoXML());
+            reader_xml.Output(os);
+
+            Dict dict = {
+                {"map", os.str()},
+                {"request_id", info.AsMap().at("id")}
+            };
+            nodes.push_back(std::move(dict));
+        }
+
 		void Reader::Output(std::ostream& out) {
             using namespace json;
 
@@ -80,67 +149,15 @@ namespace transport {
 
             for (const auto& info : doc_.GetRoot().AsMap().at("stat_requests").AsArray()) {
                 if (info.AsMap().at("type").AsString() == "Stop") {
-                    auto stop_info = catalogue_.FindStop(info.AsMap().at("name").AsString());
-                    if (!stop_info) {
-                        Dict dict = {
-                            {"error_message", std::string("not found")},
-                            {"request_id", info.AsMap().at("id")}
-                        };
-                        nodes.push_back(std::move(dict));
-                    }
-                    else {
-                        auto buses_info = stop_info->buses_for_stop;
-                        std::sort(buses_info.begin(), buses_info.end());
-
-                        std::vector<Node> node_buses;
-                        for (const auto& bus : buses_info) {
-                            node_buses.push_back(std::string(bus));
-                        }
-
-                        Dict dict = {
-                            {"buses", node_buses},
-                            {"request_id", info.AsMap().at("id")}
-                        };
-
-                        nodes.push_back(std::move(dict));
-                    }
+                    StopOutput(out, info, nodes);
                 }
 
                 if (info.AsMap().at("type").AsString() == "Bus") {
-                    auto bus_info = catalogue_.GetBusInfo(info.AsMap().at("name").AsString());
-
-                    if (bus_info.stops_on_route == 0) {
-                        Dict dict = {
-                            {"error_message", std::string("not found")},
-                            {"request_id", info.AsMap().at("id")}
-                        };
-
-                        nodes.push_back(std::move(dict));
-                    }
-                    else {
-                        Dict dict = {
-                            {"curvature", bus_info.curvature},
-                            {"request_id", info.AsMap().at("id")},
-                            {"route_length", bus_info.route_length},
-                            {"stop_count", static_cast<int>(bus_info.stops_on_route)},
-                            {"unique_stop_count", static_cast<int>(bus_info.unique_stops)}
-                        };
-
-                        nodes.push_back(std::move(dict));
-                    }
+                    BusOutput(out, info, nodes);
                 }
 
                 if (info.AsMap().at("type").AsString() == "Map") {
-
-                    std::ostringstream os;
-                    transport::map_renderer::MapRenderer reader_xml(catalogue_, GetInfoXML());
-                    reader_xml.Output(os);
-
-                    Dict dict = {
-                        {"map", os.str()},
-                        {"request_id", info.AsMap().at("id")}
-                    };
-                    nodes.push_back(std::move(dict));
+                    MapOutput(out, info, nodes);
                 }
             }
 
