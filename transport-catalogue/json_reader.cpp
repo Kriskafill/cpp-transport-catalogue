@@ -3,7 +3,7 @@
 #include <algorithm>
 
 namespace transport {
-	namespace json_reader {
+    namespace json_reader {
 
         void Reader::StopReader(transport_catalogue::TransportCatalogue& catalogue) {
             std::vector<Distance> distances;
@@ -142,7 +142,7 @@ namespace transport {
             nodes.push_back(std::move(dict));
         }
 
-		void Reader::Output(std::ostream& out) {
+        void Reader::Output(std::ostream& out) {
             using namespace json;
 
             std::vector<Node> nodes;
@@ -163,7 +163,7 @@ namespace transport {
 
             Document doc(nodes);
             Print(doc, out);
-		}
+        }
 
         svg::Color GetColor(json::Node& node) {
             svg::Color color;
@@ -207,7 +207,7 @@ namespace transport {
             std::vector<json::Node> stop_label_offset = info.at("stop_label_offset").AsArray();
 
             json::Node underlayer_color(info.at("underlayer_color"));
-     
+
             std::vector<json::Node> color_palette(info.at("color_palette").AsArray());
 
             return {
@@ -231,5 +231,5 @@ namespace transport {
                 GetVectorColor(color_palette)
             };
         }
-	}
+    }
 }

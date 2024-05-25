@@ -31,12 +31,12 @@ namespace transport {
 			void Output(std::ostream& out);
 			domain::RenderSettings GetInfoXML();
 
+			void StopReader(transport_catalogue::TransportCatalogue& catalogue);
+			void BusReader(transport_catalogue::TransportCatalogue& catalogue);
+
 			void StopOutput(const json::Node& info, std::vector<json::Node>& nodes);
 			void BusOutput(const json::Node& info, std::vector<json::Node>& nodes);
 			void MapOutput(const json::Node& info, std::vector<json::Node>& nodes);
-
-			void StopReader(transport_catalogue::TransportCatalogue& catalogue);
-			void BusReader(transport_catalogue::TransportCatalogue& catalogue);
 
 		private:
 			transport_catalogue::TransportCatalogue& catalogue_;
