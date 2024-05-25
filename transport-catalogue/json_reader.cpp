@@ -73,7 +73,7 @@ namespace transport {
             BusReader(catalogue);
         }
 
-        void Reader::StopOutput(std::ostream& out, const json::Node& info, std::vector<json::Node>& nodes) {
+        void Reader::StopOutput(const json::Node& info, std::vector<json::Node>& nodes) {
             using namespace json;
 
             auto stop_info = catalogue_.FindStop(info.AsMap().at("name").AsString());
@@ -102,7 +102,7 @@ namespace transport {
             }
         }
 
-        void Reader::BusOutput(std::ostream& out, const json::Node& info, std::vector<json::Node>& nodes) {
+        void Reader::BusOutput(const json::Node& info, std::vector<json::Node>& nodes) {
             using namespace json;
 
             auto bus_info = catalogue_.GetBusInfo(info.AsMap().at("name").AsString());
@@ -128,7 +128,7 @@ namespace transport {
             }
         }
 
-        void Reader::MapOutput(std::ostream& out, const json::Node& info, std::vector<json::Node>& nodes) {
+        void Reader::MapOutput(const json::Node& info, std::vector<json::Node>& nodes) {
             using namespace json;
 
             std::ostringstream os;
@@ -149,15 +149,15 @@ namespace transport {
 
             for (const auto& info : doc_.GetRoot().AsMap().at("stat_requests").AsArray()) {
                 if (info.AsMap().at("type").AsString() == "Stop") {
-                    StopOutput(out, info, nodes);
+                    StopOutput(info, nodes);
                 }
 
                 if (info.AsMap().at("type").AsString() == "Bus") {
-                    BusOutput(out, info, nodes);
+                    BusOutput(info, nodes);
                 }
 
                 if (info.AsMap().at("type").AsString() == "Map") {
-                    MapOutput(out, info, nodes);
+                    MapOutput(info, nodes);
                 }
             }
 
