@@ -7,7 +7,7 @@ namespace svg {
     void Object::Render(const RenderContext& context) const {
         context.RenderIndent();
 
-        // Делегируем вывод тега своим подклассам
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         RenderObject(context);
 
         context.out << std::endl;

@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 
 #include "json_reader.h"
 #include "map_renderer.h"
