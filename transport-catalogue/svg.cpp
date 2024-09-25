@@ -7,13 +7,12 @@ namespace svg {
     void Object::Render(const RenderContext& context) const {
         context.RenderIndent();
 
-        // ���������� ����� ���� ����� ����������
         RenderObject(context);
 
         context.out << std::endl;
     }
 
-    // ---------- Circle ------------------
+    // ---------- Circle ----------
 
     Circle& Circle::SetCenter(Point center) {
         center_ = center;
@@ -38,7 +37,7 @@ namespace svg {
         out << "/>"sv;
     }
 
-    // ---------- Polyline ------------------
+    // ---------- Polyline ----------
 
     Polyline& Polyline::AddPoint(Point point) {
         vertice_.push_back(std::move(point));
@@ -61,7 +60,7 @@ namespace svg {
         out << "/>"sv;
     }
 
-    // ---------- Text ------------------
+    // ---------- Text ----------
 
     Text& Text::SetPosition(Point pos) {
         pos_ = std::move(pos);
@@ -116,7 +115,7 @@ namespace svg {
         out << ">"sv << data_ << "</text>"sv;
     }
 
-    // ---------------Document-----------------
+    // ---------- Document ----------
 
     void Document::AddPtr(std::unique_ptr<Object>&& obj) {
         objects_.emplace_back(std::move(obj));

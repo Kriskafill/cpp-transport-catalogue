@@ -241,7 +241,6 @@ namespace svg {
 	class Polyline final : public Object, public PathProps<Polyline> {
 	public:
 
-		// ��������� ��������� ������� � ������� �����
 		Polyline& AddPoint(Point point);
 
 	private:
@@ -253,22 +252,11 @@ namespace svg {
 	class Text final : public Object, public PathProps<Text> {
 	public:
 
-		// ����� ���������� ������� ����� (�������� x � y)
 		Text& SetPosition(Point pos);
-
-		// ����� �������� ������������ ������� ����� (�������� dx, dy)
 		Text& SetOffset(Point offset);
-
-		// ����� ������� ������ (������� font-size)
 		Text& SetFontSize(uint32_t size);
-
-		// ����� �������� ������ (������� font-family)
 		Text& SetFontFamily(std::string font_family);
-
-		// ����� ������� ������ (������� font-weight)
 		Text& SetFontWeight(std::string font_weight);
-
-		// ����� ��������� ���������� ������� (������������ ������ ���� text)
 		Text& SetData(std::string data);
 
 	private:
@@ -325,7 +313,6 @@ namespace shapes {
 			, p3_(p3) {
 		}
 
-		// ��������� ����� Draw ���������� svg::Drawable
 		void Draw(svg::ObjectContainer& container) const {
 			container.Add(svg::Polyline().AddPoint(p1_).AddPoint(p2_).AddPoint(p3_).AddPoint(p1_));
 		}

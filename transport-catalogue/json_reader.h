@@ -38,6 +38,7 @@ namespace transport {
 			void StopOutput(const json::Node& info, std::vector<json::Node>& nodes);
 			void BusOutput(const json::Node& info, std::vector<json::Node>& nodes);
 			void MapOutput(const json::Node& info, std::vector<json::Node>& nodes);
+			void RouteOutput(const json::Node& info, std::vector<json::Node>& nodes);
 
 		private:
 			transport_catalogue::TransportCatalogue& catalogue_;

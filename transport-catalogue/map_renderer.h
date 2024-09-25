@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace transport {
-	namespace map_renderer {
+    namespace map_renderer {
         inline const double EPSILON = 1e-6;
 
         bool IsZero(double value);
@@ -93,5 +93,5 @@ namespace transport {
         private:
             svg::Document doc_;
         };
-	}
+    }
 }

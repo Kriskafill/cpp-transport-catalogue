@@ -33,12 +33,6 @@ namespace json {
         void AssertNewObjectContext() const;
         void AddObject(Node::Value value, bool one_shot);
 
-        // Key() ? Value(), StartDict(), StartArray()
-        // StartDict() ? Key(), EndDict()
-        // Key() ? Value() ? Key(), EndDict()
-        // StartArray() ? Value(), StartDict(), StartArray(), EndArray() 
-        // StartArray() ? Value() ? Value(), StartDict(), StartArray(), EndArray() 
-
         class BaseContext {
         public:
             BaseContext(Builder& builder) : builder_(builder) {}

@@ -63,11 +63,6 @@ namespace json {
         return *this;
     }
 
-    // Current value can be:
-    // * Dict, when .Key().Value() or EndDict() is expected
-    // * Array, when .Value() or EndArray() is expected
-    // * nullptr (default), when first call or dict Value() is expected
-
     Node::Value& Builder::GetCurrentValue() {
         if (nodes_stack_.empty()) {
             throw std::logic_error("Attempt to change finalized JSON"s);

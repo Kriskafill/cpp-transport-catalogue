@@ -10,7 +10,7 @@ namespace transport {
         void MapRenderer::BusPolylineRenderer(transport_catalogue::TransportCatalogue& catalogue, const domain::RenderSettings& xml, map_renderer::SphereProjector& sphere_projector, std::deque<std::string_view>& buses) {
             int index_color = 0;
             int color_count = xml.color_palette.size();
-            
+
             for (auto it = buses.begin(); it != buses.end(); ++it) {
 
                 svg::Polyline polyline;
@@ -187,7 +187,7 @@ namespace transport {
                 vect.begin(), vect.end(),
                 xml.width, xml.height, xml.padding
             );
-            
+
             BusRenderer(catalogue, xml, sphere_projector);
             StopRenderer(catalogue, xml, sphere_projector);
         }

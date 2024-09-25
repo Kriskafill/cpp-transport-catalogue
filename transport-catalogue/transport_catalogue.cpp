@@ -1,4 +1,5 @@
 #include "transport_catalogue.h"
+//#include "log_duration.h"
 
 #include <algorithm>
 
@@ -7,6 +8,7 @@ namespace transport {
 		void TransportCatalogue::AddStop(std::string_view id, geo::Coordinates coordinates) {
 			stops_.push_back({ std::move(std::string(id)), coordinates, {} });
 			stopname_to_stop_.insert({ stops_.back().name, &stops_.back() });
+			stopindex_to_stop_.insert({ stops_.back().name, stops_.size() - 1});
 		}
 
 		void TransportCatalogue::AddDistance(std::string_view id, std::string_view stop, int distance) {
@@ -50,6 +52,10 @@ namespace transport {
 			}
 		}
 
+		size_t TransportCatalogue::GetStopId(std::string_view id) const {
+			return stopindex_to_stop_.at(id);
+		}
+
 		domain::Bus* TransportCatalogue::FindBus(std::string_view id) const {
 			if (busname_to_bus_.count(id) == 0) {
 				return nullptr;
@@ -87,8 +93,52 @@ namespace transport {
 			return { stops_on_route, unique_stops, route_length, curvature };
 		}
 
+		TransportCatalogue::RouteInfo TransportCatalogue::GetRouteInfo(std::string_view stop1, std::string_view stop2) const {
+			
+			//LOG_DURATION("GET_ROUTE_INFO");
+			//graph::Router<double> router_(weightGraph);
+			//LOG_DURATION("GET_ROUTE_INFO-WITHOUT-INITIALIZE");
+			TransportCatalogue::RouteInfo result;
+			auto info_router = router_->BuildRoute(GetStopId(stop1) * 2, GetStopId(stop2) * 2);
+
+			if (info_router) {
+
+				for (int i = 0; i < info_router->edges.size(); ++i) {
+					auto edge = edgeInfo_.at(info_router->edges[i]);
+					if (!edge.first) {
+						result.edges.push_back({
+							weightGraph.GetEdge(info_router->edges[i]).weight,
+							0,
+							"Wait",
+							std::string_view(stops_.at(weightGraph.GetEdge(info_router->edges[i]).from / 2).name)
+							});
+					}
+					else {
+						result.edges.push_back({
+							weightGraph.GetEdge(info_router->edges[i]).weight,
+							edge.second,
+							"Bus",
+							std::string_view(edge.first->name)
+							});
+					}
+				}
+
+				result.total_time = info_router->weight;
+			}
+			else {
+				result.total_time = -1;
+			}
+
+			return result;
+		}
+
 		int TransportCatalogue::GetDistance(domain::Stop* stop1, domain::Stop* stop2) const {
-			return distances_.at(std::pair<domain::Stop*, domain::Stop*>(stop1, stop2));
+			if (distances_.count(std::pair<domain::Stop*, domain::Stop*>(stop1, stop2)) > 0) {
+				return distances_.at(std::pair<domain::Stop*, domain::Stop*>(stop1, stop2));
+			}
+			else {
+				return distances_.at(std::pair<domain::Stop*, domain::Stop*>(stop2, stop1));
+			}
 		}
 	}
 }

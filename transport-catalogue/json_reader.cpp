@@ -1,4 +1,5 @@
 #include "json_reader.h"
+//#include "log_duration.h"
 
 #include <algorithm>
 
@@ -37,6 +38,16 @@ namespace transport {
         }
 
         void Reader::BusReader(transport_catalogue::TransportCatalogue& catalogue) {
+
+            //LOG_DURATION("BUS_READER");
+            int bus_wait_time = 0;
+            double bus_velocity = 0;
+
+            for (const auto& info : doc_.GetRoot().AsDict().at("routing_settings").AsDict()) {
+                if (info.first == "bus_velocity") bus_velocity = info.second.AsDouble();
+                if (info.first == "bus_wait_time") bus_wait_time = info.second.AsInt();
+            }
+
             for (const auto& info : doc_.GetRoot().AsDict().at("base_requests").AsArray()) {
                 if (info.AsDict().at("type").AsString() == "Bus") {
                     std::vector<std::string_view> stops;
@@ -57,8 +68,42 @@ namespace transport {
                         info.AsDict().at("name").AsString(),
                         stops, info.AsDict().at("is_roundtrip").AsBool()
                     );
+
+                    domain::Bus* this_bus = catalogue.FindBus(info.AsDict().at("name").AsString());
+
+                    for (auto i = stops.begin() + 1; i != stops.end(); ++i) {
+
+                        double distance = 0.0;
+
+                        int diff = 1;
+                        for (auto it = i; it != stops.begin(); --it) {
+
+                            distance += catalogue.GetDistance(
+                                catalogue.FindStop(*(prev(it))),
+                                catalogue.FindStop(*it)
+                            );
+
+                            size_t prev_stop = catalogue.GetStopId(*(prev(it)));
+                            size_t this_stop = catalogue.GetStopId(*i);
+
+                            catalogue.AddRoute(
+                                prev_stop * 2 + 1,
+                                this_stop * 2,
+                                distance / 1000 / bus_velocity * 60
+                            );
+                            catalogue.AddEdgeInfo(this_bus, diff);
+                            ++diff;
+                        }
+                    }
                 }
             }
+
+            for (size_t i = 0; i < catalogue.GetStopsCount(); ++i) {
+                catalogue.AddRoute(i * 2, i * 2 + 1, bus_wait_time);
+                catalogue.AddEdgeInfo(nullptr, 0);
+            }
+
+
         }
 
         Reader::Reader(
@@ -69,8 +114,11 @@ namespace transport {
 
             using namespace json;
 
+            //LOG_DURATION("READER");
             StopReader(catalogue);
+            catalogue.SetEdgeValue();
             BusReader(catalogue);
+            catalogue.SetRouteValue();
         }
 
         void Reader::StopOutput(const json::Node& info, std::vector<json::Node>& nodes) {
@@ -87,12 +135,6 @@ namespace transport {
                     .EndDict()
                     .Build()
                 );
-
-                /*Dict dict = {
-                    {"error_message", std::string("not found")},
-                    {"request_id", info.AsDict().at("id")}
-                };
-                nodes.push_back(std::move(dict));*/
             }
             else {
                 auto buses_info = stop_info->buses_for_stop;
@@ -110,13 +152,6 @@ namespace transport {
                     .EndDict()
                     .Build()
                 );
-
-                /*Dict dict = {
-                    {"buses", node_buses},
-                    {"request_id", info.AsDict().at("id")}
-                };*/
-
-                //nodes.push_back(std::move(dict));
             }
         }
 
@@ -136,13 +171,6 @@ namespace transport {
                     .EndDict()
                     .Build()
                 );
-
-                /*Dict dict = {
-                    {"error_message", std::string("not found")},
-                    {"request_id", info.AsDict().at("id")}
-                };*/
-
-                //nodes.push_back(std::move(dict));
             }
             else {
 
@@ -156,16 +184,6 @@ namespace transport {
                     .EndDict()
                     .Build()
                 );
-
-                /*Dict dict = {
-                    {"curvature", bus_info.curvature},
-                    {"request_id", info.AsDict().at("id")},
-                    {"route_length", bus_info.route_length},
-                    {"stop_count", static_cast<int>(bus_info.stops_on_route)},
-                    {"unique_stop_count", static_cast<int>(bus_info.unique_stops)}
-                };
-
-                nodes.push_back(std::move(dict));*/
             }
         }
 
@@ -177,12 +195,6 @@ namespace transport {
             transport::map_renderer::MapRenderer reader_xml(catalogue_, GetInfoXML());
             reader_xml.Output(os);
 
-            /*Dict dict = {
-                {"map", os.str()},
-                {"request_id", info.AsDict().at("id")}
-            };
-            nodes.push_back(std::move(dict));*/
-
             nodes.push_back(json::Builder{}
                 .StartDict()
                 .Key("map"s).Value(os.str())
@@ -190,6 +202,61 @@ namespace transport {
                 .EndDict()
                 .Build()
             );
+        }
+
+        void Reader::RouteOutput(const json::Node& info, std::vector<json::Node>& nodes) {
+            using namespace std::literals;
+
+            //LOG_DURATION("ROUTE_OUTPUT");
+            auto result = catalogue_.GetRouteInfo(
+                info.AsDict().at("from").AsString(),
+                info.AsDict().at("to").AsString()
+            );
+
+            if (result.total_time != -1) {
+
+                json::Array edge_array;
+
+                for (auto edge : result.edges) {
+                    if (edge.type == "Bus") {
+                        json::Dict edge_dict;
+
+                        edge_dict.insert({ "bus"s, std::string(edge.name) });
+                        edge_dict.insert({ "span_count"s, edge.span_count });
+                        edge_dict.insert({ "time"s, edge.weight });
+                        edge_dict.insert({ "type"s, "Bus"s });
+
+                        edge_array.push_back(edge_dict);
+                    }
+                    else {
+                        json::Dict edge_dict;
+
+                        edge_dict.insert({ "stop_name"s, std::string(edge.name) });
+                        edge_dict.insert({ "time"s, edge.weight });
+                        edge_dict.insert({ "type"s, "Wait"s });
+
+                        edge_array.push_back(edge_dict);
+                    }
+                }
+
+                nodes.push_back(json::Builder{}
+                    .StartDict()
+                    .Key("items").Value(edge_array)
+                    .Key("request_id"s).Value(info.AsDict().at("id").GetValue())
+                    .Key("total_time"s).Value(result.total_time)
+                    .EndDict()
+                    .Build()
+                );
+            }
+            else {
+                nodes.push_back(json::Builder{}
+                    .StartDict()
+                    .Key("request_id"s).Value(info.AsDict().at("id").GetValue())
+                    .Key("error_message"s).Value("not found"s)
+                    .EndDict()
+                    .Build()
+                );
+            }
         }
 
         void Reader::Output(std::ostream& out) {
@@ -208,6 +275,10 @@ namespace transport {
 
                 if (info.AsDict().at("type").AsString() == "Map") {
                     MapOutput(info, nodes);
+                }
+
+                if (info.AsDict().at("type").AsString() == "Route") {
+                    RouteOutput(info, nodes);
                 }
             }
 
