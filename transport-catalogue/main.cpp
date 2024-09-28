@@ -3,7 +3,7 @@
 #include "json_reader.h"
 #include "map_renderer.h"
 
-// Sprint 12: Review Version #1
+// Sprint 12: Review Version #2
 
 int main() {
     transport::transport_catalogue::TransportCatalogue catalogue;

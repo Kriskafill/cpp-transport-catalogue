@@ -1,5 +1,4 @@
 #include "transport_catalogue.h"
-//#include "log_duration.h"
 
 #include <algorithm>
 
@@ -91,45 +90,6 @@ namespace transport {
 			double curvature = route_length / route_length_in_line;
 
 			return { stops_on_route, unique_stops, route_length, curvature };
-		}
-
-		TransportCatalogue::RouteInfo TransportCatalogue::GetRouteInfo(std::string_view stop1, std::string_view stop2) const {
-			
-			//LOG_DURATION("GET_ROUTE_INFO");
-			//graph::Router<double> router_(weightGraph);
-			//LOG_DURATION("GET_ROUTE_INFO-WITHOUT-INITIALIZE");
-			TransportCatalogue::RouteInfo result;
-			auto info_router = router_->BuildRoute(GetStopId(stop1) * 2, GetStopId(stop2) * 2);
-
-			if (info_router) {
-
-				for (int i = 0; i < info_router->edges.size(); ++i) {
-					auto edge = edgeInfo_.at(info_router->edges[i]);
-					if (!edge.first) {
-						result.edges.push_back({
-							weightGraph.GetEdge(info_router->edges[i]).weight,
-							0,
-							"Wait",
-							std::string_view(stops_.at(weightGraph.GetEdge(info_router->edges[i]).from / 2).name)
-							});
-					}
-					else {
-						result.edges.push_back({
-							weightGraph.GetEdge(info_router->edges[i]).weight,
-							edge.second,
-							"Bus",
-							std::string_view(edge.first->name)
-							});
-					}
-				}
-
-				result.total_time = info_router->weight;
-			}
-			else {
-				result.total_time = -1;
-			}
-
-			return result;
 		}
 
 		int TransportCatalogue::GetDistance(domain::Stop* stop1, domain::Stop* stop2) const {

@@ -4,6 +4,7 @@
 #include "map_renderer.h"
 #include "json.h"
 #include "json_builder.h"
+#include "transport_router.h"
 
 #include <iostream>
 #include <map>
@@ -34,11 +35,12 @@ namespace transport {
 
 			void StopReader(transport_catalogue::TransportCatalogue& catalogue);
 			void BusReader(transport_catalogue::TransportCatalogue& catalogue);
+			void RouteReader(transport_catalogue::TransportCatalogue& catalogue);
 
 			void StopOutput(const json::Node& info, std::vector<json::Node>& nodes);
 			void BusOutput(const json::Node& info, std::vector<json::Node>& nodes);
 			void MapOutput(const json::Node& info, std::vector<json::Node>& nodes);
-			void RouteOutput(const json::Node& info, std::vector<json::Node>& nodes);
+			void RouteOutput(const json::Node& info, std::vector<json::Node>& nodes, transport_router::TransportRouter& router);
 
 		private:
 			transport_catalogue::TransportCatalogue& catalogue_;

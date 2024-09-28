@@ -39,15 +39,6 @@ namespace transport {
 
         void Reader::BusReader(transport_catalogue::TransportCatalogue& catalogue) {
 
-            //LOG_DURATION("BUS_READER");
-            int bus_wait_time = 0;
-            double bus_velocity = 0;
-
-            for (const auto& info : doc_.GetRoot().AsDict().at("routing_settings").AsDict()) {
-                if (info.first == "bus_velocity") bus_velocity = info.second.AsDouble();
-                if (info.first == "bus_wait_time") bus_wait_time = info.second.AsInt();
-            }
-
             for (const auto& info : doc_.GetRoot().AsDict().at("base_requests").AsArray()) {
                 if (info.AsDict().at("type").AsString() == "Bus") {
                     std::vector<std::string_view> stops;
@@ -68,42 +59,15 @@ namespace transport {
                         info.AsDict().at("name").AsString(),
                         stops, info.AsDict().at("is_roundtrip").AsBool()
                     );
-
-                    domain::Bus* this_bus = catalogue.FindBus(info.AsDict().at("name").AsString());
-
-                    for (auto i = stops.begin() + 1; i != stops.end(); ++i) {
-
-                        double distance = 0.0;
-
-                        int diff = 1;
-                        for (auto it = i; it != stops.begin(); --it) {
-
-                            distance += catalogue.GetDistance(
-                                catalogue.FindStop(*(prev(it))),
-                                catalogue.FindStop(*it)
-                            );
-
-                            size_t prev_stop = catalogue.GetStopId(*(prev(it)));
-                            size_t this_stop = catalogue.GetStopId(*i);
-
-                            catalogue.AddRoute(
-                                prev_stop * 2 + 1,
-                                this_stop * 2,
-                                distance / 1000 / bus_velocity * 60
-                            );
-                            catalogue.AddEdgeInfo(this_bus, diff);
-                            ++diff;
-                        }
-                    }
                 }
             }
+        }
 
-            for (size_t i = 0; i < catalogue.GetStopsCount(); ++i) {
-                catalogue.AddRoute(i * 2, i * 2 + 1, bus_wait_time);
-                catalogue.AddEdgeInfo(nullptr, 0);
+        void Reader::RouteReader(transport_catalogue::TransportCatalogue& catalogue) {
+            for (const auto& info : doc_.GetRoot().AsDict().at("routing_settings").AsDict()) {
+                if (info.first == "bus_velocity") catalogue.bus_velocity = info.second.AsDouble();
+                if (info.first == "bus_wait_time") catalogue.bus_wait_time = info.second.AsInt();
             }
-
-
         }
 
         Reader::Reader(
@@ -114,11 +78,9 @@ namespace transport {
 
             using namespace json;
 
-            //LOG_DURATION("READER");
             StopReader(catalogue);
-            catalogue.SetEdgeValue();
             BusReader(catalogue);
-            catalogue.SetRouteValue();
+            RouteReader(catalogue);
         }
 
         void Reader::StopOutput(const json::Node& info, std::vector<json::Node>& nodes) {
@@ -204,11 +166,10 @@ namespace transport {
             );
         }
 
-        void Reader::RouteOutput(const json::Node& info, std::vector<json::Node>& nodes) {
+        void Reader::RouteOutput(const json::Node& info, std::vector<json::Node>& nodes, transport_router::TransportRouter& router) {
             using namespace std::literals;
 
-            //LOG_DURATION("ROUTE_OUTPUT");
-            auto result = catalogue_.GetRouteInfo(
+            auto result = router.GetRouteInfo(
                 info.AsDict().at("from").AsString(),
                 info.AsDict().at("to").AsString()
             );
@@ -264,6 +225,10 @@ namespace transport {
 
             std::vector<Node> nodes;
 
+            transport_router::TransportRouter router(catalogue_);
+            router.SetEdgeValue();
+            router.SetRouteValue();
+
             for (const auto& info : doc_.GetRoot().AsDict().at("stat_requests").AsArray()) {
                 if (info.AsDict().at("type").AsString() == "Stop") {
                     StopOutput(info, nodes);
@@ -278,7 +243,7 @@ namespace transport {
                 }
 
                 if (info.AsDict().at("type").AsString() == "Route") {
-                    RouteOutput(info, nodes);
+                    RouteOutput(info, nodes, router);
                 }
             }
 
