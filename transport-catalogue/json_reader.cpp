@@ -226,8 +226,6 @@ namespace transport {
             std::vector<Node> nodes;
 
             transport_router::TransportRouter router(catalogue_);
-            router.SetEdgeValue();
-            router.SetRouteValue();
 
             for (const auto& info : doc_.GetRoot().AsDict().at("stat_requests").AsArray()) {
                 if (info.AsDict().at("type").AsString() == "Stop") {

@@ -3,18 +3,18 @@
 namespace transport {
 	namespace transport_router {
 
-        void TransportRouter::SetEdgeValue() {
-            weightGraph = graph::DirectedWeightedGraph<double>(catalogue_.GetStops().size() * 2);
+        void TransportRouter::BuildGraph() {
+			weight_graph_ = graph::DirectedWeightedGraph<double>(catalogue_.GetStops().size() * 2);
 
-            auto& r = catalogue_.GetBuses();
+            auto& buses = catalogue_.GetBuses();
 
-            for (int index = 0; index < r.size(); ++index) {
-                for (auto i = r[index].stops.begin() + 1; i != r[index].stops.end(); ++i) {
+            for (int index = 0; index < buses.size(); ++index) {
+                for (auto i = buses[index].stops.begin() + 1; i != buses[index].stops.end(); ++i) {
 
                     double distance = 0.0;
 
                     int diff = 1;
-                    for (auto it = i; it != r[index].stops.begin(); --it) {
+                    for (auto it = i; it != buses[index].stops.begin(); --it) {
 
                         distance += catalogue_.GetDistance(
                             catalogue_.FindStop((*(prev(it)))->name),
@@ -27,10 +27,10 @@ namespace transport {
                         AddRoute(
                             prev_stop * 2 + 1,
                             this_stop * 2,
-                            distance / 1000 / catalogue_.bus_velocity * 60
+                            distance / METRS_FOR_KILOMETR / catalogue_.bus_velocity * SECONDS_FOR_MINUTE
                         );
 
-                        AddEdgeInfo(const_cast<domain::Bus*>(&(r[index])), diff);
+                        AddEdgeInfo(const_cast<domain::Bus*>(&(buses[index])), diff);
                         ++diff;
                     }
                 }
@@ -50,21 +50,21 @@ namespace transport {
 			if (info_router) {
 
 				for (int i = 0; i < info_router->edges.size(); ++i) {
-					auto edge = edgeInfo_.at(info_router->edges[i]);
-					if (!edge.first) {
+					auto edge = edge_info_.at(info_router->edges[i]);
+					if (!edge.bus) {
 						result.edges.push_back({
-							weightGraph.GetEdge(info_router->edges[i]).weight,
+							weight_graph_.GetEdge(info_router->edges[i]).weight,
 							0,
 							"Wait",
-							std::string_view(catalogue_.GetStops().at(weightGraph.GetEdge(info_router->edges[i]).from / 2).name)
+							std::string_view(catalogue_.GetStops().at(weight_graph_.GetEdge(info_router->edges[i]).from / 2).name)
 							});
 					}
 					else {
 						result.edges.push_back({
-							weightGraph.GetEdge(info_router->edges[i]).weight,
-							edge.second,
+							weight_graph_.GetEdge(info_router->edges[i]).weight,
+							edge.stops_count,
 							"Bus",
-							std::string_view(edge.first->name)
+							std::string_view(edge.bus->name)
 							});
 					}
 				}
