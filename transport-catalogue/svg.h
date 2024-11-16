@@ -301,7 +301,7 @@ namespace svg {
 		AddPtr(std::make_unique<Obj>(std::move(obj)));
 	}
 
-}  // namespace svg
+}
 
 namespace shapes {
 

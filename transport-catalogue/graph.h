@@ -71,4 +71,4 @@ namespace graph {
         DirectedWeightedGraph<Weight>::GetIncidentEdges(VertexId vertex) const {
         return ranges::AsRange(incidence_lists_.at(vertex));
     }
-}  // namespace graph
+}

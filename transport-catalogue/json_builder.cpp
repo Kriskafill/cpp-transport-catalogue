@@ -33,17 +33,17 @@ namespace json {
     }
 
     Builder::BaseContext Builder::Value(Node::Value value) {
-        AddObject(std::move(value), /* one_shot */ true);
+        AddObject(std::move(value), true);
         return *this;
     }
 
     Builder::DictItemContext Builder::StartDict() {
-        AddObject(Dict{}, /* one_shot */ false);
+        AddObject(Dict{}, false);
         return BaseContext{ *this };
     }
 
     Builder::ArrayItemContext Builder::StartArray() {
-        AddObject(Array{}, /* one_shot */ false);
+        AddObject(Array{}, false);
         return BaseContext{ *this };
     }
 
@@ -70,7 +70,6 @@ namespace json {
         return nodes_stack_.back()->GetValue();
     }
 
-    // Tell about this trick
     const Node::Value& Builder::GetCurrentValue() const {
         return const_cast<Builder*>(this)->GetCurrentValue();
     }
@@ -84,7 +83,6 @@ namespace json {
     void Builder::AddObject(Node::Value value, bool one_shot) {
         Node::Value& host_value = GetCurrentValue();
         if (std::holds_alternative<Array>(host_value)) {
-            // Tell about emplace_back
             Node& node
                 = std::get<Array>(host_value).emplace_back(std::move(value));
             if (!one_shot) {
@@ -100,4 +98,4 @@ namespace json {
         }
     }
 
-}  // namespace json
+}

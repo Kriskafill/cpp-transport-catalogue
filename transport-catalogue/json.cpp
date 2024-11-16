@@ -135,7 +135,6 @@ namespace json {
         Node LoadNumber(std::istream& input) {
             std::string parsed_num;
 
-            // ��������� � parsed_num ��������� ������ �� input
             auto read_char = [&parsed_num, &input] {
                 parsed_num += static_cast<char>(input.get());
                 if (!input) {
@@ -143,7 +142,6 @@ namespace json {
                 }
                 };
 
-            // ��������� ���� ��� ����� ���� � parsed_num �� input
             auto read_digits = [&input, read_char] {
                 if (!std::isdigit(input.peek())) {
                     throw ParsingError("A digit is expected"s);
@@ -156,24 +154,21 @@ namespace json {
             if (input.peek() == '-') {
                 read_char();
             }
-            // ������ ����� ����� �����
+
             if (input.peek() == '0') {
                 read_char();
-                // ����� 0 � JSON �� ����� ���� ������ �����
             }
             else {
                 read_digits();
             }
 
             bool is_int = true;
-            // ������ ������� ����� �����
             if (input.peek() == '.') {
                 read_char();
                 read_digits();
                 is_int = false;
             }
 
-            // ������ ���������������� ����� �����
             if (int ch = input.peek(); ch == 'e' || ch == 'E') {
                 read_char();
                 if (ch = input.peek(); ch == '+' || ch == '-') {
@@ -185,14 +180,10 @@ namespace json {
 
             try {
                 if (is_int) {
-                    // ������� ������� ������������� ������ � int
                     try {
                         return std::stoi(parsed_num);
                     }
-                    catch (...) {
-                        // � ������ �������, ��������, ��� ������������
-                        // ��� ���� ��������� ������������� ������ � double
-                    }
+                    catch (...) { }
                 }
                 return std::stod(parsed_num);
             }
@@ -343,7 +334,7 @@ namespace json {
                 node.GetValue());
         }
 
-    }  // namespace
+    }
 
     Document Load(std::istream& input) {
         return Document{ LoadNode(input) };
@@ -353,4 +344,4 @@ namespace json {
         PrintNode(doc.GetRoot(), PrintContext{ output });
     }
 
-}  // namespace json
+}
